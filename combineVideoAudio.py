@@ -25,7 +25,7 @@ for videoRow in readVideo:
     # read in video prediction
     labelConfidentialParisVideo = videoRow[1].split()
     # confidence of first label is high, skip audio
-    if float(labelConfidentialParisVideo[1]) > 0.1:
+    if float(labelConfidentialParisVideo[1]) > 0.5:
         skipAudioRow = next(readAudio)
         writer.writerow([videoRow[0] + ',' + videoRow[1]])
 
