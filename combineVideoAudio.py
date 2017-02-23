@@ -4,7 +4,7 @@ from operator import attrgetter
 
 videofile = open("/Users/yingwang/Downloads/predictions2.csv", "r")
 audiofile = open("/Users/yingwang/Downloads/predictions00_logistic_model_audio_only.csv", "r")
-outputfile = open("combined_predictions.csv", "w")
+outputfile = open("combined_predictions_temp.csv", "w")
 
 readVideo = csv.reader(videofile, delimiter=',')
 firstVideoLine = next(readVideo)
@@ -25,7 +25,7 @@ for videoRow in readVideo:
     # read in video prediction
     labelConfidentialParisVideo = videoRow[1].split()
     # confidence of first label is high, skip audio
-    if float(labelConfidentialParisVideo[1]) > 0.5:
+    if float(labelConfidentialParisVideo[1]) > 1:
         skipAudioRow = next(readAudio)
         writer.writerow([videoRow[0] + ',' + videoRow[1]])
 
@@ -66,9 +66,9 @@ for videoRow in readVideo:
         		videoPairs.append(pair(int(labelConfidentialParisAudio[i * 2]), float(labelConfidentialParisAudio[i * 2 + 1]) * 0.385))
 
         # calculation complete, write to file
-        if videoPairs[0].label != labelConfidentialParisVideo[i * 2]:
+        if int(videoPairs[0].label) != int(labelConfidentialParisVideo[0]):
         	count = count + 1
-        	#print str(videoPairs[0].label) + " " + labelConfidentialParisVideo[i * 2]
+        	print videoRow[0] + " " + str(videoPairs[0].label) + " " + labelConfidentialParisVideo[0]
         outputline = ""
         for i in range(0, 20):
         	outputline = outputline + str(videoPairs[i].label) + ' ' + str(videoPairs[i].probablity) + ' '
