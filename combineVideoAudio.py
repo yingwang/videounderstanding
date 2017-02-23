@@ -1,4 +1,6 @@
 import csv
+from collections import namedtuple
+from operator import attrgetter
 
 videofile = open("/Users/yingwang/Downloads/predictions2.csv", "r")
 audiofile = open("/Users/yingwang/Downloads/predictions00_logistic_model_audio_only.csv", "r")
@@ -40,13 +42,25 @@ for videoRow in readVideo:
         max = 0
         index = 0
         
+        #video confidence low, combine video and audio
+        videoPairs = list()
+        pair = namedtuple("Pair", ["label", "probablity"])
         for i in range(0, 20):
-            labelConfidentialParisVideo[i * 2 + 1] = float(labelConfidentialParisVideo[i * 2 + 1]) * 0.5 + classPro[int(labelConfidentialParisVideo[i * 2])] * 0.5
-            if labelConfidentialParisVideo[i * 2 + 1] > max:
-            	max = labelConfidentialParisVideo[i * 2 + 1]
-            	index = labelConfidentialParisVideo[i * 2]
-        if index != labelConfidentialParisVideo[0]:
-        	print videoRow[0]
+        	probablity = float(labelConfidentialParisVideo[i * 2 + 1]) * 0.615 + classPro[int(labelConfidentialParisVideo[i * 2])] * 0.385
+        	videoPairs.append(pair(int(labelConfidentialParisVideo[i * 2]), probablity))
+        #print videoPairs
+        #print "----"
+        videoPairs = sorted(videoPairs, key=attrgetter('probablity'), reverse=True)
+        #print videoPairs
+        #print "----------"
+        #print "----------"
+        if videoPairs[0].label != labelConfidentialParisVideo[i * 2]:
         	count = count + 1
-        writer.writerow([videoRow[0] + ',' + index + ' ' + str(max)])
+        	#print str(videoPairs[0].label) + " " + labelConfidentialParisVideo[i * 2]
+        outputline = ""
+        for i in range(0, 20):
+        	outputline = outputline + str(videoPairs[i].label) + ' ' + str(videoPairs[i].probablity) + ' '
+        #writer = csv.writer(outputfile, delimiter ='|',quotechar =' ',quoting=csv.QUOTE_MINIMAL)
+        # writer = csv.writer(outputfile, delimiter='|')
+        writer.writerow([videoRow[0] + ',' + outputline])
 print count
