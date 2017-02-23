@@ -25,21 +25,21 @@ for videoRow in readVideo:
     # read in video prediction
     labelConfidentialParisVideo = videoRow[1].split()
     # confidence of first label is high, skip audio
-    if float(labelConfidentialParisVideo[1]) > 0.1:
+    if float(labelConfidentialParisVideo[1]) > 0.3:
         skipAudioRow = next(readAudio)
         writer.writerow([videoRow[0] + ',' + videoRow[1]])
 
     # video confidence low, take audio into account
     else:
     	# init hashtable
-    	classPro = list();
+    	ht1 = list()
     	for i in range(0, 4800):
-   			classPro.append(0.0)
+   			ht1.append(0.0)
    		# read audio data into hashtable
         audioRow = next(readAudio)
         labelConfidentialParisAudio = audioRow[1].split()
         for i in range(0, 20):
-            classPro[int(labelConfidentialParisAudio[i * 2])] = float(labelConfidentialParisAudio[i * 2 + 1]);
+            ht1[int(labelConfidentialParisAudio[i * 2])] = float(labelConfidentialParisAudio[i * 2 + 1]);
         max = 0
         index = 0
         
@@ -47,10 +47,25 @@ for videoRow in readVideo:
         videoPairs = list()
         pair = namedtuple("Pair", ["label", "probablity"])
         for i in range(0, 20):
-        	probablity = float(labelConfidentialParisVideo[i * 2 + 1]) * 0.615 + classPro[int(labelConfidentialParisVideo[i * 2])] * 0.385
+        	probablity = float(labelConfidentialParisVideo[i * 2 + 1]) * 0.615 + ht1[int(labelConfidentialParisVideo[i * 2])] * 0.385
         	videoPairs.append(pair(int(labelConfidentialParisVideo[i * 2]), probablity))
         # sort the list after recalculate probablity
         videoPairs = sorted(videoPairs, key=attrgetter('probablity'), reverse=True)
+
+        # include remaining audio prediction
+        # init hashtable
+        ht2 = list()
+    	for i in range(0, 4800):
+            ht2.append(0.0)
+   		# read video data into hashtable
+        for i in range(0, 20):
+   			ht2[int(labelConfidentialParisVideo[i * 2])] = float(labelConfidentialParisVideo[i * 2 + 1])
+        # add Audio prediction into list
+        for i in range(0, 20):
+        	if ht2[int(labelConfidentialParisAudio[i * 2])] == 0:
+        		videoPairs.append(pair(int(labelConfidentialParisAudio[i * 2]), float(labelConfidentialParisAudio[i * 2 + 1]) * 0.385))
+
+        # calculation complete, write to file
         if videoPairs[0].label != labelConfidentialParisVideo[i * 2]:
         	count = count + 1
         	#print str(videoPairs[0].label) + " " + labelConfidentialParisVideo[i * 2]
